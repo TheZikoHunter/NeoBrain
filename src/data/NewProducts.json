@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "name": "Premium Wireless Headphones",
+    "price": 199.99,
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "category": "Electronics",
+    "isNew": true
+  },
+  {
+    "id": 2,
+    "name": "Ergonomic Office Chair",
+    "price": 249.99,
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "category": "Furniture",
+    "isNew": true
+  },
+  {
+    "id": 3,
+    "name": "Smart Fitness Watch",
+    "price": 129.99,
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "category": "Wearables",
+    "isNew": true,
+    "discount": 15
+  },
+  {
+    "id": 4,
+    "name": "Organic Cotton T-Shirt",
+    "price": 34.99,
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "category": "Fashion",
+    "isNew": true
+  }
+]
