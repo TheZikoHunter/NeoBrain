@@ -9,7 +9,7 @@ function NewArrivals() {
                         <h2 className="text-3xl font-bold text-gray-900">New Arrivals</h2>
                         <p className="text-gray-600 mt-2">Check out our latest products</p>
                     </div>
-                    <a href="#" className="text-gray-900 font-medium hover:underline flex items-center">
+                    <a href="/products" className="text-gray-900 font-medium hover:underline flex items-center">
                         View All
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

@@ -14,7 +14,7 @@ const Navigation = () => {
             <div className="flex flex-wrap items-center gap-8 flex-1">
                 {/*Navigation items*/}
                 <ul className="flex gap-14">
-                    <li className="text-gray-500 hover:text-black"><a href="/">Shop</a></li>
+                    <li className="text-gray-500 hover:text-black"><a href="/products">Shop</a></li>
                     <li className="text-gray-500 hover:text-black"><a href="/">Categories</a></li>
                     <li className="text-gray-500 hover:text-black"><a href="/">Offers</a></li>
                     <li className="text-gray-500 hover:text-black"><a href="/">Best Sellers</a></li>
@@ -40,7 +40,7 @@ const Navigation = () => {
                 {/*Action items*/}
                 <ul className="flex items-center space-x-8">
                     <li><a><WishlistIcon className="size-5 text-slate-800 hover:fill-black cursor-pointer"></WishlistIcon></a></li>
-                    <li><a><UserIcon className="size-5 text-slate-800 hover:fill-black cursor-pointer"></UserIcon></a></li>
+                    <li><a href="/login"><UserIcon className="size-5 text-slate-800 hover:fill-black cursor-pointer"></UserIcon></a></li>
                     <li><a><CartIcon className="size-5 text-slate-800 hover:fill-black cursor-pointer"></CartIcon></a></li>
                 </ul>
             </div>
