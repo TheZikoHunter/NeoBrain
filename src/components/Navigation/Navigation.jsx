@@ -15,7 +15,7 @@ const Navigation = () => {
                 {/*Navigation items*/}
                 <ul className="flex gap-14">
                     <li className="text-gray-500 hover:text-black"><a href="/products">Shop</a></li>
-                    <li className="text-gray-500 hover:text-black"><a href="/">Categories</a></li>
+                    <li className="text-gray-500 hover:text-black"><a href="/categories">Categories</a></li>
                     <li className="text-gray-500 hover:text-black"><a href="/">Offers</a></li>
                     <li className="text-gray-500 hover:text-black"><a href="/">Best Sellers</a></li>
                 </ul>
