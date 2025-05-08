@@ -15,84 +15,28 @@ function Products() {
 
     // Simulate fetching products from an API
     useEffect(() => {
-        // In a real app, you would fetch from an API
-        // For now, we'll use the newArrivals data and expand it
-        const fetchedProducts = [
-            {
-                id: 5,
-                name: "Ergonomic Desk Lamp",
-                price: 79.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Home & Kitchen",
-                isNew: false,
-            },
-            {
-                id: 6,
-                name: "Wireless Gaming Mouse",
-                price: 59.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Electronics",
-                isNew: false,
-                discount: 10,
-            },
-            {
-                id: 7,
-                name: "Leather Wallet",
-                price: 45.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Fashion",
-                isNew: false,
-            },
-            {
-                id: 8,
-                name: "Stainless Steel Water Bottle",
-                price: 24.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Sports",
-                isNew: false,
-            },
-            {
-                id: 9,
-                name: "Bluetooth Speaker",
-                price: 89.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Electronics",
-                isNew: true,
-            },
-            {
-                id: 10,
-                name: "Yoga Mat",
-                price: 29.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Sports",
-                isNew: false,
-                discount: 15,
-            },
-            {
-                id: 11,
-                name: "Coffee Maker",
-                price: 119.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Home & Kitchen",
-                isNew: false,
-            },
-            {
-                id: 12,
-                name: "Skincare Set",
-                price: 49.99,
-                image: "/placeholder.svg?height=300&width=300",
-                category: "Beauty",
-                isNew: true,
-            },
-        ]
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch("http://localhost:8080/api/products")
+                const data = await res.json()
 
-        // Extract unique categories
-        const uniqueCategories = [...new Set(fetchedProducts.map((product) => product.category))]
+                if (!Array.isArray(data)) {
+                    throw new Error("Expected an array of products from API")
+                }
 
-        setProducts(fetchedProducts)
-        setFilteredProducts(fetchedProducts)
-        setCategories(uniqueCategories)
-        setLoading(false)
+                const uniqueCategories = [...new Set(data.map((product) => product.category))]
+
+                setProducts(data)
+                setFilteredProducts(data)
+                setCategories(uniqueCategories)
+            } catch (error) {
+                console.error("Error fetching products:", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchProducts()
     }, [])
 
     // Apply filters and sorting
@@ -130,7 +74,7 @@ function Products() {
                 result.sort((a, b) => b.price - a.price)
                 break
             case "newest":
-                result.sort((a, b) => (a.isNew === b.isNew ? 0 : a.isNew ? -1 : 1))
+                result.sort((a, b) => (a.new === b.new ? 0 : a.new ? -1 : 1))
                 break
             default:
                 // Featured - no specific sorting
@@ -243,7 +187,7 @@ function Products() {
                         {product.discount}% OFF
                       </span>
                                         )}
-                                        {product.isNew && !product.discount && (
+                                        {product.new && !product.discount && (
                                             <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
                         NEW
                       </span>
