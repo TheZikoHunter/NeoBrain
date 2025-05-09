@@ -15,17 +15,36 @@ public class Product {
     @Column(name = "IS_NEW")
     private boolean isNew;
     private Long discount;
+    private String description;
 
     public Product() {
     }
 
-    public Product(Long id, String name, double price, String category, String image, boolean isNew) {
+    public Product(Long id, String name, double price, String category, String image, boolean isNew, Long discount, String description) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.category = category;
         this.image = image;
         this.isNew = isNew;
+        this.discount =discount;
+        this.description = description;
+    }
+
+    public Long getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(Long discount) {
+        this.discount = discount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Long getId() {
