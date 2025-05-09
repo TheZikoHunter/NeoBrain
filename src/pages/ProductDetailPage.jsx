@@ -102,7 +102,7 @@ function ProductDetailPage() {
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
                             {/* Product Image */}
-                            <div className="relative">
+                            <div className="relative w-[500px] ml-19">
                                 {product.discount && (
                                     <span className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-2 py-1 rounded z-10">
                     {product.discount}% OFF
@@ -117,7 +117,7 @@ function ProductDetailPage() {
                                     <img
                                         src={product.image || "/placeholder.svg"}
                                         alt={product.name}
-                                        className="w-full h-auto object-contain aspect-square"
+                                        className="w-full h-max object-cover aspect-square"
                                     />
                                 </div>
                             </div>
@@ -194,55 +194,56 @@ function ProductDetailPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex-grow">
-                                        <button
-                                            onClick={handleAddToCart}
-                                            className="w-full bg-black text-white py-3 px-6 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center"
+
+                                </div>
+                                <div className="flex-grow">
+                                    <button
+                                        onClick={handleAddToCart}
+                                        className="w-64 bg-black text-white py-3 px-6 rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-5 w-5 mr-2"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-5 w-5 mr-2"
-                                                viewBox="0 0 20 20"
-                                                fill="currentColor"
-                                            >
-                                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z" />
-                                            </svg>
-                                            Add to Cart
-                                        </button>
+                                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z" />
+                                        </svg>
+                                        Add to Cart
+                                    </button>
+                                    <div className="border-t border-gray-200 pt-6">
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <div className="flex items-center mr-6">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="h-5 w-5 mr-1 text-green-500"
+                                                    viewBox="0 0 20 20"
+                                                    fill="currentColor"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                                In Stock
+                                            </div>
+                                            <div className="flex items-center">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="h-5 w-5 mr-1 text-gray-500"
+                                                    viewBox="0 0 20 20"
+                                                    fill="currentColor"
+                                                >
+                                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1H3V5h11v5h1V5a1 1 0 00-1-1H3zM14 7h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1V8a1 1 0 011-1z" />
+                                                </svg>
+                                                Free Shipping
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="border-t border-gray-200 pt-6">
-                                    <div className="flex items-center text-sm text-gray-600">
-                                        <div className="flex items-center mr-6">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-5 w-5 mr-1 text-green-500"
-                                                viewBox="0 0 20 20"
-                                                fill="currentColor"
-                                            >
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                            In Stock
-                                        </div>
-                                        <div className="flex items-center">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-5 w-5 mr-1 text-gray-500"
-                                                viewBox="0 0 20 20"
-                                                fill="currentColor"
-                                            >
-                                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-1H3V5h11v5h1V5a1 1 0 00-1-1H3zM14 7h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1V8a1 1 0 011-1z" />
-                                            </svg>
-                                            Free Shipping
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Navigation from "../Navigation/Navigation.jsx"
-import Footer from "../HeroSection/Footer.jsx"
 
 function JoinTeamForm() {
     const [formData, setFormData] = useState({
@@ -17,6 +15,8 @@ function JoinTeamForm() {
     })
 
     const [submitted, setSubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -33,13 +33,50 @@ function JoinTeamForm() {
         }))
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        console.log("Form submitted:", formData)
-        // Here you would typically send the data to your server
-        // For now, we'll just simulate a successful submission
-        setSubmitted(true)
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setErrorMessage("");
+
+        // Create FormData object to match the expected backend parameters
+        const form = new FormData();
+        form.append("firstName", formData.firstName);
+        form.append("lastName", formData.lastName);
+        form.append("email", formData.email);
+        form.append("phone", formData.phone || "");
+        form.append("position", formData.position);
+        form.append("experience", formData.experience);
+        form.append("message", formData.message || "");
+
+        if (formData.resume) {
+            form.append("resume", formData.resume);
+        }
+
+        try {
+            const res = await fetch("http://localhost:8080/api/applications", {
+                method: "POST",
+                body: form,
+                // Do not set Content-Type header when using FormData with files
+                // The browser will automatically set the appropriate Content-Type with boundary
+            });
+
+            // Get response as text first
+            const responseText = await res.text();
+            console.log("Response text:", responseText);
+
+            if (res.ok) {
+                console.log("Form submitted successfully");
+                setSubmitted(true);
+            } else {
+                throw new Error(`Server error: ${res.status} - ${responseText || "Unknown error"}`);
+            }
+        } catch (error) {
+            console.error("There was an error submitting the form!", error);
+            setErrorMessage(error.message || "There was an error submitting the form. Please try again later.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -73,11 +110,22 @@ function JoinTeamForm() {
                                 </svg>
                                 <h2 className="text-2xl font-bold text-green-700 mb-2">Application Submitted!</h2>
                                 <p className="text-green-600 mb-4">
-                                    Thank you for your interest in joining our team. We'll review your application and get back to you
-                                    soon.
+                                    Thank you for your interest in joining our team. We'll review your application and contact you soon.
                                 </p>
                                 <button
-                                    onClick={() => setSubmitted(false)}
+                                    onClick={() => {
+                                        setSubmitted(false);
+                                        setFormData({
+                                            firstName: "",
+                                            lastName: "",
+                                            email: "",
+                                            phone: "",
+                                            position: "",
+                                            experience: "",
+                                            message: "",
+                                            resume: null,
+                                        });
+                                    }}
                                     className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
                                 >
                                     Submit Another Application
@@ -85,6 +133,12 @@ function JoinTeamForm() {
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
+                                {errorMessage && (
+                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+                                        <p className="text-red-600">{errorMessage}</p>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div>
                                         <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -224,9 +278,12 @@ function JoinTeamForm() {
                                 <div className="flex justify-center">
                                     <button
                                         type="submit"
-                                        className="bg-black text-white px-8 py-3 rounded-md hover:bg-gray-800 transition-colors"
+                                        disabled={isSubmitting}
+                                        className={`bg-black text-white px-8 py-3 rounded-md transition-colors ${
+                                            isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:bg-gray-800"
+                                        }`}
                                     >
-                                        Submit Application
+                                        {isSubmitting ? "Submitting..." : "Submit Application"}
                                     </button>
                                 </div>
                             </form>

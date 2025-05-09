@@ -32,12 +32,36 @@ function ReclamationForm() {
         }))
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        console.log("Reclamation submitted:", formData)
-        // Here you would typically send the data to your server
-        setSubmitted(true)
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const form = new FormData();
+        form.append("data", new Blob([JSON.stringify({
+            orderNumber: formData.orderNumber,
+            purchaseDate: formData.purchaseDate,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            issueType: formData.issueType,
+            productName: formData.productName,
+            description: formData.description,
+        })], { type: "application/json" }));
+
+        if (formData.photos) {
+            for (let i = 0; i < formData.photos.length; i++) {
+                form.append("photos", formData.photos[i]);
+            }
+        }
+
+        const res = await fetch("http://localhost:8080/api/reclamations", {
+            method: "POST",
+            body: form
+        });
+
+        if (res.ok) {
+            setSubmitted(true);
+        }
+    };
 
     return (
         <div className="max-w-3xl mx-auto p-4">
