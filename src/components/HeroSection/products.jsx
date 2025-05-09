@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 
 function Products() {
     const [products, setProducts] = useState([])
@@ -13,12 +14,15 @@ function Products() {
         sortBy: "featured",
     })
 
-    // Simulate fetching products from an API
+    // Fetch products from API
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                console.log("Fetching products from API")
                 const res = await fetch("http://localhost:8080/api/products")
                 const data = await res.json()
+
+                console.log("Products received:", data)
 
                 if (!Array.isArray(data)) {
                     throw new Error("Expected an array of products from API")
@@ -181,56 +185,62 @@ function Products() {
                                     key={product.id}
                                     className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
                                 >
-                                    <div className="relative">
-                                        {product.discount && (
-                                            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                        {product.discount}% OFF
-                      </span>
-                                        )}
-                                        {product.new && !product.discount && (
-                                            <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                        NEW
-                      </span>
-                                        )}
-                                        <img
-                                            src={product.image || "/placeholder.svg"}
-                                            alt={product.name}
-                                            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                        <button className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black text-white font-medium py-2 px-4 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            Add to Cart
-                                        </button>
-                                    </div>
-                                    <div className="p-4">
-                                        <span className="text-sm text-gray-500">{product.category}</span>
-                                        <h3 className="font-medium text-gray-900 mt-1">{product.name}</h3>
-                                        <div className="flex items-center justify-between mt-2">
-                                            <p className="font-bold text-gray-900">${product.price.toFixed(2)}</p>
-                                            <div className="flex items-center">
-                                                <button className="text-gray-400 hover:text-red-500 transition-colors">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="20"
-                                                        height="20"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
+                                    <Link to={`/product/${product.id}`} className="block">
+                                        <div className="relative">
+                                            {product.discount && (
+                                                <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                          {product.discount}% OFF
+                        </span>
+                                            )}
+                                            {product.new && (
+                                                <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+                          NEW
+                        </span>
+                                            )}
+                                            <img
+                                                src={product.image || "/placeholder.svg"}
+                                                alt={product.name}
+                                                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        </div>
+                                        <div className="p-4">
+                                            <span className="text-sm text-gray-500">{product.category}</span>
+                                            <h3 className="font-medium text-gray-900 mt-1">{product.name}</h3>
+                                            <div className="flex items-center justify-between mt-2">
+                                                <p className="font-bold text-gray-900">${product.price.toFixed(2)}</p>
+                                                <div className="flex items-center">
+                                                    <button
+                                                        className="text-gray-400 hover:text-red-500 transition-colors"
+                                                        onClick={(e) => {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            // Add wishlist functionality here
+                                                        }}
                                                     >
-                                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                                    </svg>
-                                                </button>
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="20"
+                                                            height="20"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                             ))}
                         </div>
                     )}
 
-                    {/* Pagination */}
+                    {/* Pagination - simplified version */}
                     <div className="flex justify-center mt-12">
                         <nav className="flex items-center gap-1">
                             <button className="px-3 py-1 border rounded-md text-gray-600 hover:bg-gray-100">Previous</button>

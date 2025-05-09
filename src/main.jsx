@@ -10,6 +10,7 @@ import ProductsPage from "./pages/ProductsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
+import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 
 /*createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/join-team" element={<JoinTeamPage />} />
                 <Route path="/reclamation" element={<ComplaintPage />} />
                 <Route path="/products" element={<ProductsPage />} />
+                <Route path="/product/:productId" element={<ProductDetailPage />} />
                 <Route path="/categories" element={<CategoryPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
