@@ -1,7 +1,4 @@
-"use client"
-
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
 
 function LoginForm() {
     const [formData, setFormData] = useState({
@@ -11,7 +8,8 @@ function LoginForm() {
     })
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const navigate = useNavigate()
+    const [serverError, setServerError] = useState("")
+    const [loginSuccess, setLoginSuccess] = useState(false)
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -26,6 +24,11 @@ function LoginForm() {
                 ...errors,
                 [name]: "",
             })
+        }
+
+        // Clear server error when user starts typing
+        if (serverError) {
+            setServerError("")
         }
     }
 
@@ -50,22 +53,76 @@ function LoginForm() {
         return Object.keys(newErrors).length === 0
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
 
         if (validateForm()) {
             setIsSubmitting(true)
+            setServerError("")
 
-            // Simulate API call
-            setTimeout(() => {
-                console.log("Login form submitted:", formData)
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Important for cookies
+                    body: JSON.stringify({
+                        email: formData.email,
+                        password: formData.password
+                    }),
+                })
+
+                const data = await response.json()
+
+                if (data.success) {
+                    console.log("Login successful:", data)
+                    setLoginSuccess(true)
+
+                    // Store user data in localStorage for easy access
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.userId,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        email: data.email
+                    }))
+
+                    // Show success message briefly, then redirect
+                    setTimeout(() => {
+                        // Redirect to products page or wherever you want
+                        window.location.href = "/products" // Change this to your desired route
+                    }, 1500)
+
+                } else {
+                    setServerError(data.message || "Login failed")
+                }
+            } catch (error) {
+                console.error("Login error:", error)
+                setServerError("Network error. Please try again.")
+            } finally {
                 setIsSubmitting(false)
-
-                // In a real app, you would handle authentication here
-                // For now, just redirect to home page
-                navigate("/")
-            }, 1500)
+            }
         }
+    }
+
+    // Show success message
+    if (loginSuccess) {
+        return (
+            <div className="min-h-screen flex flex-col">
+                <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-sm text-center">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                            <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900">Login Successful!</h2>
+                        <p className="text-gray-600">Redirecting you to the products page...</p>
+                        <div className="animate-spin mx-auto h-8 w-8 border-b-2 border-black rounded-full"></div>
+                    </div>
+                </main>
+            </div>
+        )
     }
 
     return (
@@ -78,6 +135,12 @@ function LoginForm() {
                     </div>
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                        {serverError && (
+                            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                                {serverError}
+                            </div>
+                        )}
+
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -151,37 +214,41 @@ function LoginForm() {
                                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? (
-                                    <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
-                                ) : null}
-                                Sign in
+                                    <>
+                                        <svg
+                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    "Sign in"
+                                )}
                             </button>
                         </div>
 
                         <div className="flex items-center justify-center">
                             <div className="text-sm">
                                 <span className="text-gray-500">Don't have an account?</span>{" "}
-                                <Link to="/signup" className="font-medium text-black hover:text-gray-800">
+                                <a href="/signup" className="font-medium text-black hover:text-gray-800">
                                     Sign up
-                                </Link>
+                                </a>
                             </div>
                         </div>
 

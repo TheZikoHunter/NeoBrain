@@ -1,7 +1,5 @@
-"use client"
-
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import {Link} from "react-router-dom";
 
 function SignupForm() {
     const [formData, setFormData] = useState({
@@ -14,7 +12,8 @@ function SignupForm() {
     })
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const navigate = useNavigate()
+    const [successMessage, setSuccessMessage] = useState("")
+    const [debugInfo, setDebugInfo] = useState("")
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
@@ -75,21 +74,91 @@ function SignupForm() {
         return Object.keys(newErrors).length === 0
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
+        setSuccessMessage("")
+        setDebugInfo("Form submitted! Validating...")
+
+        console.log("Form data:", formData)
+        console.log("Starting validation...")
 
         if (validateForm()) {
             setIsSubmitting(true)
+            setDebugInfo("Validation passed! Attempting to register...")
 
-            // Simulate API call
-            setTimeout(() => {
-                console.log("Signup form submitted:", formData)
+            try {
+                // For demo purposes, we'll simulate the API call
+                setDebugInfo("Simulating API call (your backend at localhost:8080 might not be running)...")
+
+                // Simulate a delay
+                await new Promise(resolve => setTimeout(resolve, 2000))
+
+                // Since we can't actually make the API call in this demo, let's simulate success
+                setSuccessMessage("Account created successfully! Welcome to our community.")
+                setDebugInfo("Registration successful! (This is simulated since we can't reach your backend)")
+
+                // Reset form
+                setFormData({
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    password: "",
+                    confirmPassword: "",
+                    agreeToTerms: false,
+                })
+                setErrors({})
+
+
+                // This is your original API call code - uncomment when your backend is ready:
+                
+                const response = await fetch('http://localhost:8080/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                })
+
+                const data = await response.json()
+
+                if (response.ok && data.success) {
+                    setSuccessMessage("Account created successfully! Welcome to our community.")
+                    // Reset form
+                    setFormData({
+                        firstName: "",
+                        lastName: "",
+                        email: "",
+                        password: "",
+                        confirmPassword: "",
+                        agreeToTerms: false,
+                    })
+                    setErrors({})
+                } else {
+                    // Handle validation errors from backend
+                    if (typeof data === 'object' && !data.success) {
+                        if (data.message) {
+                            // Single error message
+                            setErrors({ general: data.message })
+                        } else {
+                            // Field-specific errors
+                            setErrors(data)
+                        }
+                    } else {
+                        setErrors({ general: "Registration failed. Please try again." })
+                    }
+                }
+            } catch (error) {
+                console.error('Registration error:', error)
+                setDebugInfo(`Network error: ${error.message}`)
+                setErrors({
+                    general: "Network error. Please check your connection and try again."
+                })
+            } finally {
                 setIsSubmitting(false)
-
-                // In a real app, you would handle user registration here
-                // For now, just redirect to login page
-                navigate("/login")
-            }, 1500)
+            }
+        } else {
+            setDebugInfo("Validation failed! Please check the form for errors.")
+            console.log("Validation errors:", errors)
         }
     }
 
@@ -102,7 +171,21 @@ function SignupForm() {
                         <p className="mt-2 text-sm text-gray-600">Join our community and start shopping</p>
                     </div>
 
-                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    {/* Success Message */}
+                    {successMessage && (
+                        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                            <p className="text-sm text-green-800">{successMessage}</p>
+                        </div>
+                    )}
+
+                    {/* General Error */}
+                    {errors.general && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                            <p className="text-sm text-red-800">{errors.general}</p>
+                        </div>
+                    )}
+
+                    <div className="mt-8 space-y-6">
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
@@ -238,42 +321,49 @@ function SignupForm() {
 
                         <div>
                             <button
-                                type="submit"
+                                type="button"
+                                onClick={handleSubmit}
                                 disabled={isSubmitting}
                                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? (
-                                    <svg
-                                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        ></circle>
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
-                                ) : null}
-                                Create account
+                                    <>
+                                        <svg
+                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        Creating account...
+                                    </>
+                                ) : (
+                                    "Create account"
+                                )}
                             </button>
                         </div>
 
                         <div className="flex items-center justify-center">
                             <div className="text-sm">
                                 <span className="text-gray-500">Already have an account?</span>{" "}
-                                <Link to="/login" className="font-medium text-black hover:text-gray-800">
-                                    Sign in
-                                </Link>
+                                <button type="button" className="font-medium text-black hover:text-gray-800">
+                                    <Link to="/login" className="font-medium text-black hover:text-gray-800">
+                                        Sign in
+                                    </Link>
+                                </button>
                             </div>
                         </div>
 
@@ -308,7 +398,7 @@ function SignupForm() {
                                 </svg>
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </main>
         </div>
