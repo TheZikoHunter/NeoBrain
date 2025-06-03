@@ -102,22 +102,6 @@ public class InventaireRepositoryImpl extends GenericRepositoryImpl<Inventaire, 
     }
     
     @Override
-    public List<Inventaire> findByDescriptionContaining(String searchTerm) {
-        try (Session session = openSession()) {
-            Query<Inventaire> query = session.createQuery(
-                "FROM Inventaire i WHERE LOWER(i.description) LIKE LOWER(:searchTerm) ORDER BY i.dateDebut DESC", 
-                Inventaire.class);
-            query.setParameter("searchTerm", "%" + searchTerm + "%");
-            List<Inventaire> inventaires = query.getResultList();
-            logger.debug("Found {} inventories matching search term: {}", inventaires.size(), searchTerm);
-            return inventaires;
-        } catch (Exception e) {
-            logger.error("Error finding inventories by description containing: {}", searchTerm, e);
-            throw new RuntimeException("Error finding inventories by description", e);
-        }
-    }
-    
-    @Override
     public List<Inventaire> findByEtat(String etatInventaire) {
         try (Session session = openSession()) {
             Query<Inventaire> query = session.createQuery(
@@ -373,6 +357,40 @@ public class InventaireRepositoryImpl extends GenericRepositoryImpl<Inventaire, 
         } catch (Exception e) {
             logger.error("Error getting inventory statistics by category", e);
             throw new RuntimeException("Error getting inventory statistics by category", e);
+        }
+    }
+
+    // Override the findAll method to eagerly load tasks
+    @Override
+    public List<Inventaire> findAll() {
+        try (Session session = openSession()) {
+            Query<Inventaire> query = session.createQuery(
+                "SELECT DISTINCT i FROM Inventaire i LEFT JOIN FETCH i.taches " +
+                "ORDER BY i.dateCreation DESC", Inventaire.class);
+            List<Inventaire> inventaires = query.getResultList();
+            logger.debug("Found {} inventories with tasks eagerly loaded", inventaires.size());
+            return inventaires;
+        } catch (Exception e) {
+            logger.error("Error finding all inventories with tasks", e);
+            // Fallback to regular findAll without eager loading
+            return super.findAll();
+        }
+    }
+    
+    @Override
+    public List<Inventaire> findByDescriptionContaining(String searchTerm) {
+        try (Session session = openSession()) {
+            Query<Inventaire> query = session.createQuery(
+                "SELECT DISTINCT i FROM Inventaire i LEFT JOIN FETCH i.taches " +
+                "WHERE LOWER(i.description) LIKE LOWER(:searchTerm) ORDER BY i.dateDebut DESC", 
+                Inventaire.class);
+            query.setParameter("searchTerm", "%" + searchTerm + "%");
+            List<Inventaire> inventaires = query.getResultList();
+            logger.debug("Found {} inventories matching search term: {}", inventaires.size(), searchTerm);
+            return inventaires;
+        } catch (Exception e) {
+            logger.error("Error finding inventories by description containing: {}", searchTerm, e);
+            throw new RuntimeException("Error finding inventories by description", e);
         }
     }
 }

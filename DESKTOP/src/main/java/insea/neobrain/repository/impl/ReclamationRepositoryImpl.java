@@ -27,6 +27,92 @@ public class ReclamationRepositoryImpl extends GenericRepositoryImpl<Reclamation
     public ReclamationRepositoryImpl() {
         super();
     }
+
+    @Override
+    public List<Reclamation> findByDateRange(LocalDate startDate, LocalDate endDate) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Reclamation> query = session.createQuery(
+                "FROM Reclamation r WHERE r.date BETWEEN :startDate AND :endDate ORDER BY r.date DESC",
+                Reclamation.class);
+            query.setParameter("startDate", startDate);
+            query.setParameter("endDate", endDate);
+
+            List<Reclamation> result = query.getResultList();
+            logger.debug("Found {} complaints between {} and {}", result.size(), startDate, endDate);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error finding complaints by date range: {} - {}", startDate, endDate, e);
+            throw new RuntimeException("Error finding complaints by date range", e);
+        }
+    }
+
+    @Override
+    public List<Reclamation> findByLigneCommandeId(Long ligneCommandeId) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Reclamation> query = session.createQuery(
+                "FROM Reclamation r WHERE r.ligneCommande.idLigneVente = :ligneCommandeId ORDER BY r.date DESC",
+                Reclamation.class);
+            query.setParameter("ligneCommandeId", ligneCommandeId);
+
+            List<Reclamation> result = query.getResultList();
+            logger.debug("Found {} complaints for order line id: {}", result.size(), ligneCommandeId);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error finding complaints by order line id: {}", ligneCommandeId, e);
+            throw new RuntimeException("Error finding complaints by order line id", e);
+        }
+    }
+
+    @Override
+    public List<Reclamation> findByEtatReclamation(EtatReclamation etatReclamation) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Reclamation> query = session.createQuery(
+                "FROM Reclamation r WHERE r.etat = :etatReclamation ORDER BY r.date DESC",
+                Reclamation.class);
+            query.setParameter("etatReclamation", etatReclamation);
+
+            List<Reclamation> result = query.getResultList();
+            logger.debug("Found {} complaints with etatReclamation: {}", result.size(), etatReclamation);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error finding complaints by etatReclamation: {}", etatReclamation, e);
+            throw new RuntimeException("Error finding complaints by etatReclamation", e);
+        }
+    }
+
+    @Override
+    public long countByType(TypeReclamation typeReclamation) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Long> query = session.createQuery(
+                "SELECT COUNT(r) FROM Reclamation r WHERE r.type = :typeReclamation",
+                Long.class);
+            query.setParameter("typeReclamation", typeReclamation);
+
+            Long result = query.getSingleResult();
+            logger.debug("Found {} complaints with type: {}", result, typeReclamation);
+            return result != null ? result : 0L;
+        } catch (Exception e) {
+            logger.error("Error counting complaints by type: {}", typeReclamation, e);
+            throw new RuntimeException("Error counting complaints by type", e);
+        }
+    }
+
+    @Override
+    public List<Reclamation> findByTypeReclamation(TypeReclamation typeReclamation) {
+        try (Session session = sessionFactory.openSession()) {
+            Query<Reclamation> query = session.createQuery(
+                "FROM Reclamation r WHERE r.type = :typeReclamation ORDER BY r.date DESC",
+                Reclamation.class);
+            query.setParameter("typeReclamation", typeReclamation);
+
+            List<Reclamation> result = query.getResultList();
+            logger.debug("Found {} complaints with typeReclamation: {}", result.size(), typeReclamation);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error finding complaints by typeReclamation: {}", typeReclamation, e);
+            throw new RuntimeException("Error finding complaints by typeReclamation", e);
+        }
+    }
     
     @Override
     public List<Reclamation> findByClient(Client client) {
@@ -43,6 +129,14 @@ public class ReclamationRepositoryImpl extends GenericRepositoryImpl<Reclamation
             logger.error("Error finding complaints by client: {}", client.getIdPersonne(), e);
             throw new RuntimeException("Error finding complaints by client", e);
         }
+    }
+
+
+    @Override
+    public long countAll() {
+        Session session = sessionFactory.getCurrentSession();
+        Query<Long> query = session.createQuery("SELECT COUNT(r) FROM Reclamation r", Long.class);
+        return query.uniqueResult();
     }
     
     @Override

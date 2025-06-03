@@ -214,11 +214,20 @@ public class InventoryManagementPanel extends JPanel implements ActionListener {
             // Count products
             String productsCount = getProductsCountDisplay(inventaire);
             
-            // Count completed tasks
-            long completedTasks = inventaire.getTaches().stream()
-                .filter(tache -> tache.getEtatTache() == insea.neobrain.entity.EtatTache.TERMINEE)
-                .count();
-            String tasksCount = completedTasks + "/" + inventaire.getTaches().size();
+            // Avoid accessing lazy-loaded taches collection
+            // Instead, show a placeholder or calculate in service layer
+            String tasksCount = "N/A";
+            try {
+                if (inventaire.getTaches() != null) {
+                    long completedTasks = inventaire.getTaches().stream()
+                        .filter(tache -> tache.getEtatTache() == insea.neobrain.entity.EtatTache.TERMINEE)
+                        .count();
+                    tasksCount = completedTasks + "/" + inventaire.getTaches().size();
+                }
+            } catch (Exception e) {
+                // Lazy initialization exception - just show N/A
+                tasksCount = "N/A";
+            }
             
             Object[] row = {
                 inventaire.getIdInventaire(),
@@ -325,6 +334,8 @@ public class InventoryManagementPanel extends JPanel implements ActionListener {
                 protected Void doInBackground() throws Exception {
                     Inventaire inv = new Inventaire();
                     inv.setDescription(description.trim());
+                    inv.setDateDebut(java.time.LocalDate.now());
+                    inv.setResponsable(currentUser.getNomComplet());
                     inventaireService.createInventaire(inv);
                     return null;
                 }

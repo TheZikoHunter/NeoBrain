@@ -1,9 +1,13 @@
 package insea.neobrain.ui.admin;
 
 import insea.neobrain.entity.Personnel;
+import insea.neobrain.repository.impl.ReclamationRepositoryImpl;
+import insea.neobrain.service.ReclamationService;
+import insea.neobrain.service.impl.ReclamationServiceImpl;
 import insea.neobrain.ui.common.UIConstants;
 import insea.neobrain.ui.common.UIUtils;
 import insea.neobrain.ui.login.LoginWindow;
+import insea.neobrain.ui.stock.ReclamationManagementPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,8 +22,11 @@ import java.awt.event.WindowEvent;
 public class AdminDashboard extends JFrame implements ActionListener {
     
     private final Personnel currentUser;
+    private final ReclamationService reclamationService;
+    
     private JLabel welcomeLabel;
     private JButton personnelManagementButton;
+    private JButton reclamationManagementButton;
     private JButton systemReportsButton;
     private JButton logoutButton;
     private JPanel contentPanel;
@@ -27,9 +34,11 @@ public class AdminDashboard extends JFrame implements ActionListener {
     
     // Panels for different functionalities
     private PersonnelManagementPanel personnelPanel;
+    private ReclamationManagementPanel reclamationPanel;
     
     public AdminDashboard(Personnel currentUser) {
         this.currentUser = currentUser;
+        this.reclamationService = new ReclamationServiceImpl(new ReclamationRepositoryImpl());
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -47,6 +56,9 @@ public class AdminDashboard extends JFrame implements ActionListener {
         personnelManagementButton = UIUtils.createPrimaryButton("Personnel Management");
         personnelManagementButton.setPreferredSize(new Dimension(200, 40));
         
+        reclamationManagementButton = UIUtils.createPrimaryButton("Complaint Management");
+        reclamationManagementButton.setPreferredSize(new Dimension(200, 40));
+        
         systemReportsButton = UIUtils.createSecondaryButton("System Reports");
         systemReportsButton.setPreferredSize(new Dimension(200, 40));
         
@@ -59,10 +71,12 @@ public class AdminDashboard extends JFrame implements ActionListener {
         
         // Initialize panels
         personnelPanel = new PersonnelManagementPanel();
+        reclamationPanel = new ReclamationManagementPanel(reclamationService, currentUser.getEmail());
         
         // Add panels to content
         contentPanel.add(createWelcomePanel(), "WELCOME");
         contentPanel.add(personnelPanel, "PERSONNEL");
+        contentPanel.add(reclamationPanel, "RECLAMATIONS");
     }
     
     private void setupLayout() {
@@ -106,6 +120,8 @@ public class AdminDashboard extends JFrame implements ActionListener {
         navPanel.add(Box.createVerticalStrut(15));
         navPanel.add(personnelManagementButton);
         navPanel.add(Box.createVerticalStrut(10));
+        navPanel.add(reclamationManagementButton);
+        navPanel.add(Box.createVerticalStrut(10));
         navPanel.add(systemReportsButton);
         navPanel.add(Box.createVerticalGlue());
         
@@ -120,6 +136,7 @@ public class AdminDashboard extends JFrame implements ActionListener {
     
     private void setupEventHandlers() {
         personnelManagementButton.addActionListener(this);
+        reclamationManagementButton.addActionListener(this);
         systemReportsButton.addActionListener(this);
         logoutButton.addActionListener(this);
         
@@ -187,6 +204,10 @@ public class AdminDashboard extends JFrame implements ActionListener {
         quickPersonnelBtn.addActionListener(e -> showPersonnelManagement());
         quickActions.add(quickPersonnelBtn);
         
+        JButton quickReclamationBtn = UIUtils.createSecondaryButton("Manage Complaints");
+        quickReclamationBtn.addActionListener(e -> showReclamationManagement());
+        quickActions.add(quickReclamationBtn);
+        
         centerPanel.add(quickActions, gbc);
         
         panel.add(centerPanel, BorderLayout.CENTER);
@@ -197,6 +218,8 @@ public class AdminDashboard extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == personnelManagementButton) {
             showPersonnelManagement();
+        } else if (e.getSource() == reclamationManagementButton) {
+            showReclamationManagement();
         } else if (e.getSource() == systemReportsButton) {
             showSystemReports();
         } else if (e.getSource() == logoutButton) {
@@ -207,6 +230,11 @@ public class AdminDashboard extends JFrame implements ActionListener {
     private void showPersonnelManagement() {
         cardLayout.show(contentPanel, "PERSONNEL");
         personnelPanel.refreshData();
+    }
+    
+    private void showReclamationManagement() {
+        cardLayout.show(contentPanel, "RECLAMATIONS");
+        reclamationPanel.refreshData();
     }
     
     private void showSystemReports() {

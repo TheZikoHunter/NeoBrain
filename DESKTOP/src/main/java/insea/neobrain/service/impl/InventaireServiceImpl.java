@@ -6,6 +6,8 @@ import insea.neobrain.entity.Personnel;
 import insea.neobrain.repository.InventaireRepository;
 import insea.neobrain.repository.ProduitRepository;
 import insea.neobrain.service.InventaireService;
+import insea.neobrain.util.AuditLogger;
+import insea.neobrain.util.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -444,6 +446,213 @@ public class InventaireServiceImpl implements InventaireService {
         } catch (Exception e) {
             logger.error("Error importing inventories from CSV", e);
             throw new RuntimeException("Error importing inventories from CSV", e);
+        }
+    }
+    
+    // Enhanced business logic methods
+    
+    /**
+     * Schedule automatic inventory for low stock products
+     * @param threshold minimum stock level
+     * @param personnel responsible personnel
+     * @return number of products scheduled for inventory
+     */
+    public int scheduleAutomaticInventory(int threshold, Personnel personnel) {
+        try {
+            logger.debug("Scheduling automatic inventory for products below threshold: {}", threshold);
+            
+            // Find products with low stock
+            List<Produit> lowStockProducts = produitRepository.findWithStockBelow(threshold);
+            
+            if (!lowStockProducts.isEmpty()) {
+                int scheduled = startPartialInventory(lowStockProducts, personnel);
+                AuditLogger.logInfo("SCHEDULE_INVENTORY", 
+                    "Scheduled automatic inventory for " + scheduled + " low stock products");
+                return scheduled;
+            }
+            
+            return 0;
+            
+        } catch (Exception e) {
+            logger.error("Error scheduling automatic inventory", e);
+            throw new RuntimeException("Error scheduling automatic inventory", e);
+        }
+    }
+    
+    /**
+     * Generate inventory alerts for discrepancies
+     * @return list of alert messages
+     */
+    public List<String> generateInventoryAlerts() {
+        try {
+            List<String> alerts = new ArrayList<>();
+            
+            // Check for significant discrepancies
+            List<Inventaire> discrepancies = findInventairesWithSignificantDiscrepancies(10);
+            if (!discrepancies.isEmpty()) {
+                alerts.add("ALERT: " + discrepancies.size() + " inventories with significant discrepancies (>10 units)");
+            }
+            
+            // Check for overdue inventories (older than 30 days)
+            List<Inventaire> overdueInventories = inventaireRepository.findByDateRange(
+                LocalDate.now().minusDays(90), LocalDate.now().minusDays(30));
+            if (!overdueInventories.isEmpty()) {
+                alerts.add("WARNING: " + overdueInventories.size() + " inventory sessions are overdue (>30 days)");
+            }
+            
+            // Check inventory accuracy
+            double accuracy = calculateInventoryAccuracy();
+            if (accuracy < 95.0) {
+                alerts.add("CONCERN: Inventory accuracy is below 95% (current: " + String.format("%.1f", accuracy) + "%)");
+            }
+            
+            logger.debug("Generated {} inventory alerts", alerts.size());
+            return alerts;
+            
+        } catch (Exception e) {
+            logger.error("Error generating inventory alerts", e);
+            return List.of("ERROR: Failed to generate inventory alerts");
+        }
+    }
+    
+    /**
+     * Calculate product movement velocity
+     * @param produit the product
+     * @param days number of days to analyze
+     * @return movement velocity (units per day)
+     */
+    public double calculateProductVelocity(Produit produit, int days) {
+        try {
+            LocalDate startDate = LocalDate.now().minusDays(days);
+            
+            // Get inventory records for this product in the period
+            List<Inventaire> inventories = findInventairesByDateRange(startDate, LocalDate.now());
+            
+            if (inventories.size() < 2) {
+                return 0.0; // Not enough data
+            }
+            
+            // Calculate total movement (simplified calculation)
+            int totalMovement = inventories.stream()
+                .mapToInt(inv -> inv.getEcartsDetectes())
+                .sum();
+            
+            double velocity = (double) totalMovement / days;
+            logger.debug("Product velocity for {}: {} units/day", produit.getNom(), velocity);
+            
+            return velocity;
+            
+        } catch (Exception e) {
+            logger.error("Error calculating product velocity for: {}", produit.getNom(), e);
+            return 0.0;
+        }
+    }
+    
+    /**
+     * Predict optimal inventory frequency for a product
+     * @param produit the product
+     * @return recommended frequency in days
+     */
+    public int predictOptimalInventoryFrequency(Produit produit) {
+        try {
+            double velocity = calculateProductVelocity(produit, 90); // 3 months analysis
+            
+            if (velocity == 0) {
+                return 180; // Default: every 6 months for low activity products
+            } else if (velocity > 10) {
+                return 7;   // Weekly for high velocity products
+            } else if (velocity > 5) {
+                return 14;  // Bi-weekly for medium velocity products
+            } else if (velocity > 1) {
+                return 30;  // Monthly for regular products
+            } else {
+                return 90;  // Quarterly for slow moving products
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error predicting inventory frequency for: {}", produit.getNom(), e);
+            return 90; // Default quarterly
+        }
+    }
+    
+    /**
+     * Generate inventory performance report
+     * @param startDate start date for analysis
+     * @param endDate end date for analysis
+     * @return performance report data
+     */
+    public InventoryPerformanceReport generatePerformanceReport(LocalDate startDate, LocalDate endDate) {
+        try {
+            logger.debug("Generating inventory performance report for period: {} to {}", startDate, endDate);
+            
+            List<Inventaire> periodInventories = findInventairesByDateRange(startDate, endDate);
+            
+            InventoryPerformanceReport report = new InventoryPerformanceReport();
+            report.setPeriodStart(startDate);
+            report.setPeriodEnd(endDate);
+            report.setTotalInventorySessions(periodInventories.size());
+            
+            int totalDiscrepancies = periodInventories.stream()
+                .mapToInt(Inventaire::getEcartsDetectes)
+                .sum();
+            report.setTotalDiscrepancies(totalDiscrepancies);
+            
+            double accuracy = calculateInventoryAccuracy();
+            report.setAccuracyPercentage(accuracy);
+            
+            BigDecimal variance = calculateTotalVariance();
+            report.setTotalVariance(variance);
+            
+            List<Object[]> categoryStats = getInventoryStatisticsByCategory();
+            report.setCategoryStatistics(categoryStats);
+            
+            logger.info("Performance report generated for {} inventory sessions", periodInventories.size());
+            return report;
+            
+        } catch (Exception e) {
+            logger.error("Error generating performance report", e);
+            throw new RuntimeException("Error generating performance report", e);
+        }
+    }
+    
+    /**
+     * Inner class for inventory performance report
+     */
+    public static class InventoryPerformanceReport {
+        private LocalDate periodStart;
+        private LocalDate periodEnd;
+        private int totalInventorySessions;
+        private int totalDiscrepancies;
+        private double accuracyPercentage;
+        private BigDecimal totalVariance;
+        private List<Object[]> categoryStatistics;
+        
+        // Getters and setters
+        public LocalDate getPeriodStart() { return periodStart; }
+        public void setPeriodStart(LocalDate periodStart) { this.periodStart = periodStart; }
+        
+        public LocalDate getPeriodEnd() { return periodEnd; }
+        public void setPeriodEnd(LocalDate periodEnd) { this.periodEnd = periodEnd; }
+        
+        public int getTotalInventorySessions() { return totalInventorySessions; }
+        public void setTotalInventorySessions(int totalInventorySessions) { this.totalInventorySessions = totalInventorySessions; }
+        
+        public int getTotalDiscrepancies() { return totalDiscrepancies; }
+        public void setTotalDiscrepancies(int totalDiscrepancies) { this.totalDiscrepancies = totalDiscrepancies; }
+        
+        public double getAccuracyPercentage() { return accuracyPercentage; }
+        public void setAccuracyPercentage(double accuracyPercentage) { this.accuracyPercentage = accuracyPercentage; }
+        
+        public BigDecimal getTotalVariance() { return totalVariance; }
+        public void setTotalVariance(BigDecimal totalVariance) { this.totalVariance = totalVariance; }
+        
+        public List<Object[]> getCategoryStatistics() { return categoryStatistics; }
+        public void setCategoryStatistics(List<Object[]> categoryStatistics) { this.categoryStatistics = categoryStatistics; }
+        
+        @Override
+        public String toString() {
+            return String.format("InventoryPerformanceReport{period=%s to %s, sessions=%d, discrepancies=%d, accuracy=%.2f%%, variance=%s}",
+                periodStart, periodEnd, totalInventorySessions, totalDiscrepancies, accuracyPercentage, totalVariance);
         }
     }
 }

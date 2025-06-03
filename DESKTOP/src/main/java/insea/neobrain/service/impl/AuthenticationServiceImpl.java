@@ -4,6 +4,8 @@ import insea.neobrain.entity.Personnel;
 import insea.neobrain.entity.Role;
 import insea.neobrain.repository.PersonnelRepository;
 import insea.neobrain.service.AuthenticationService;
+import insea.neobrain.util.PasswordUtil;
+import insea.neobrain.util.AuditLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -32,23 +34,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             logger.debug("Attempting authentication for username: {}", nomUtilisateur);
             Optional<Personnel> personnelOpt = personnelRepository.findByNomUtilisateur(nomUtilisateur);
+            
             if (personnelOpt.isEmpty()) {
                 logger.warn("Authentication failed: Username not found: {}", nomUtilisateur);
+                AuditLogger.logAuthentication(nomUtilisateur, false, "Username not found");
                 return Optional.empty();
             }
+            
             Personnel personnel = personnelOpt.get();
+            
             // Check if account is locked
             if (isAccountLocked(personnel)) {
                 logger.warn("Authentication failed: Account is locked for username: {}", nomUtilisateur);
+                AuditLogger.logAuthentication(nomUtilisateur, false, "Account is locked");
                 return Optional.empty();
             }
-            // Verify password (BCrypt)
-            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-            if (!encoder.matches(motDePasse, personnel.getMotDePasse())) {
+            
+            // Verify password using PasswordUtil
+            if (!PasswordUtil.verifyPassword(motDePasse, personnel.getMotDePasse())) {
                 logger.warn("Authentication failed: Invalid password for username: {}", nomUtilisateur);
+                AuditLogger.logAuthentication(nomUtilisateur, false, "Invalid password");
                 return Optional.empty();
             }
+            
             logger.info("Authentication successful for username: {}", nomUtilisateur);
+            AuditLogger.logAuthentication(nomUtilisateur, true, "Login successful");
             return Optional.of(personnel);
         } catch (Exception e) {
             logger.error("Error during authentication for username: {}", nomUtilisateur, e);
@@ -70,7 +80,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void logout() {
         if (currentUser != null) {
-            logger.info("User logged out: {}", currentUser.getNumeroPersonnel());
+            logger.info("User logged out: {}", currentUser.getNomUtilisateur());
+            AuditLogger.logAuthentication(currentUser.getNomUtilisateur(), true, "Logout successful");
             currentUser = null;
         }
     }
@@ -152,15 +163,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     
     @Override
     public String hashPassword(String password) {
-        org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-        return encoder.encode(password);
+        return PasswordUtil.hashPassword(password);
     }
     
-    // BCrypt password verification only
     @Override
     public boolean verifyPassword(String password, String hashedPassword) {
-        org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-        return encoder.matches(password, hashedPassword);
+        return PasswordUtil.verifyPassword(password, hashedPassword);
     }
     
     @Override

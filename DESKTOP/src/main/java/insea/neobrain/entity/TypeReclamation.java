@@ -17,6 +17,10 @@ public enum TypeReclamation {
         return label;
     }
     
+    public String getDisplayName() {
+        return label;
+    }
+    
     @Override
     public String toString() {
         return label;

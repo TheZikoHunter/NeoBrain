@@ -2,6 +2,9 @@ package insea.neobrain.ui.stock;
 
 import insea.neobrain.entity.Personnel;
 import insea.neobrain.entity.Role;
+import insea.neobrain.repository.impl.ReclamationRepositoryImpl;
+import insea.neobrain.service.ReclamationService;
+import insea.neobrain.service.impl.ReclamationServiceImpl;
 import insea.neobrain.ui.common.UIConstants;
 import insea.neobrain.ui.common.UIUtils;
 import insea.neobrain.ui.login.LoginWindow;
@@ -20,6 +23,7 @@ public class StockDashboard extends JFrame implements ActionListener {
     
     private final Personnel currentUser;
     private final boolean isStockManager;
+    private final ReclamationService reclamationService;
     
     private JLabel welcomeLabel;
     private JPanel contentPanel;
@@ -29,6 +33,7 @@ public class StockDashboard extends JFrame implements ActionListener {
     private JButton productManagementButton;
     private JButton inventoryManagementButton;
     private JButton inventoryTasksButton;
+    private JButton reclamationManagementButton;
     private JButton salesOrdersButton;
     private JButton logoutButton;
     
@@ -36,10 +41,12 @@ public class StockDashboard extends JFrame implements ActionListener {
     private ProductManagementPanel productPanel;
     private InventoryManagementPanel inventoryPanel;
     private InventoryTasksPanel tasksPanel;
+    private ReclamationManagementPanel reclamationPanel;
     
     public StockDashboard(Personnel currentUser) {
         this.currentUser = currentUser;
         this.isStockManager = (currentUser.getRole() == Role.RESPONSABLE_STOCK);
+        this.reclamationService = new ReclamationServiceImpl(new ReclamationRepositoryImpl());
         
         initializeComponents();
         setupLayout();
@@ -66,6 +73,9 @@ public class StockDashboard extends JFrame implements ActionListener {
         inventoryTasksButton = UIUtils.createSecondaryButton("Inventory Tasks");
         inventoryTasksButton.setPreferredSize(new Dimension(200, 40));
         
+        reclamationManagementButton = UIUtils.createSecondaryButton("Complaint Management");
+        reclamationManagementButton.setPreferredSize(new Dimension(200, 40));
+        
         salesOrdersButton = UIUtils.createSecondaryButton("Sales Orders");
         salesOrdersButton.setPreferredSize(new Dimension(200, 40));
         salesOrdersButton.setVisible(isStockManager);
@@ -83,6 +93,7 @@ public class StockDashboard extends JFrame implements ActionListener {
             inventoryPanel = new InventoryManagementPanel(currentUser);
         }
         tasksPanel = new InventoryTasksPanel(currentUser);
+        reclamationPanel = new ReclamationManagementPanel(reclamationService, currentUser.getEmail());
         
         // Add panels to content
         contentPanel.add(createWelcomePanel(), "WELCOME");
@@ -91,6 +102,7 @@ public class StockDashboard extends JFrame implements ActionListener {
             contentPanel.add(inventoryPanel, "INVENTORY");
         }
         contentPanel.add(tasksPanel, "TASKS");
+        contentPanel.add(reclamationPanel, "RECLAMATIONS");
     }
     
     private void setupLayout() {
@@ -144,6 +156,8 @@ public class StockDashboard extends JFrame implements ActionListener {
             navPanel.add(Box.createVerticalStrut(10));
         }
         navPanel.add(inventoryTasksButton);
+        navPanel.add(Box.createVerticalStrut(10));
+        navPanel.add(reclamationManagementButton);
         navPanel.add(Box.createVerticalGlue());
         
         // Main panel
@@ -159,6 +173,7 @@ public class StockDashboard extends JFrame implements ActionListener {
         productManagementButton.addActionListener(this);
         inventoryManagementButton.addActionListener(this);
         inventoryTasksButton.addActionListener(this);
+        reclamationManagementButton.addActionListener(this);
         salesOrdersButton.addActionListener(this);
         logoutButton.addActionListener(this);
         
@@ -240,6 +255,10 @@ public class StockDashboard extends JFrame implements ActionListener {
         quickTasksBtn.addActionListener(e -> showInventoryTasks());
         quickActions.add(quickTasksBtn);
         
+        JButton quickReclamationBtn = UIUtils.createSecondaryButton("Manage Complaints");
+        quickReclamationBtn.addActionListener(e -> showReclamationManagement());
+        quickActions.add(quickReclamationBtn);
+        
         centerPanel.add(quickActions, gbc);
         
         panel.add(centerPanel, BorderLayout.CENTER);
@@ -254,6 +273,8 @@ public class StockDashboard extends JFrame implements ActionListener {
             showInventoryManagement();
         } else if (e.getSource() == inventoryTasksButton) {
             showInventoryTasks();
+        } else if (e.getSource() == reclamationManagementButton) {
+            showReclamationManagement();
         } else if (e.getSource() == salesOrdersButton) {
             showSalesOrders();
         } else if (e.getSource() == logoutButton) {
@@ -278,6 +299,11 @@ public class StockDashboard extends JFrame implements ActionListener {
     private void showInventoryTasks() {
         cardLayout.show(contentPanel, "TASKS");
         tasksPanel.refreshData();
+    }
+    
+    private void showReclamationManagement() {
+        cardLayout.show(contentPanel, "RECLAMATIONS");
+        reclamationPanel.refreshData();
     }
     
     private void showSalesOrders() {

@@ -37,11 +37,53 @@ public interface ReclamationRepository extends GenericRepository<Reclamation, Lo
     List<Reclamation> findByEtat(EtatReclamation etat);
     
     /**
+     * Find complaints by status (alias for consistency)
+     * @param etat The complaint status
+     * @return List of complaints with the specified status
+     */
+    List<Reclamation> findByEtatReclamation(EtatReclamation etat);
+    
+    /**
      * Find complaints by type
      * @param type The complaint type
      * @return List of complaints of the specified type
      */
     List<Reclamation> findByType(TypeReclamation type);
+    
+    /**
+     * Find complaints by type (alias for consistency)
+     * @param type The complaint type
+     * @return List of complaints of the specified type
+     */
+    List<Reclamation> findByTypeReclamation(TypeReclamation type);
+    
+    /**
+     * Find complaints by date range
+     * @param startDate Start date (inclusive)
+     * @param endDate End date (inclusive)
+     * @return List of complaints in the date range
+     */
+    List<Reclamation> findByDateRange(LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * Find complaints by order line ID
+     * @param ligneCommandeId The order line ID
+     * @return List of complaints for the order line
+     */
+    List<Reclamation> findByLigneCommandeId(Long ligneCommandeId);
+    
+    /**
+     * Count all complaints
+     * @return Total number of complaints
+     */
+    long countAll();
+    
+    /**
+     * Count complaints by type
+     * @param type The complaint type
+     * @return Number of complaints of the specified type
+     */
+    long countByType(TypeReclamation type);
     
     /**
      * Find complaints by date range

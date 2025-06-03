@@ -15,6 +15,12 @@ import java.util.Date;
  */
 public class UIUtils {
     
+    // Color constants for easy access (delegate to UIConstants)
+    public static final Color SUCCESS_COLOR = UIConstants.SUCCESS_COLOR;
+    public static final Color DANGER_COLOR = UIConstants.DANGER_COLOR;
+    public static final Color PRIMARY_COLOR = UIConstants.PRIMARY_COLOR;
+    public static final Color INFO_COLOR = UIConstants.SECONDARY_COLOR; // Use secondary as info color
+    
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     
@@ -317,5 +323,32 @@ public class UIUtils {
         for (int i = 0; i < widths.length && i < columnModel.getColumnCount(); i++) {
             columnModel.getColumn(i).setPreferredWidth(widths[i]);
         }
+    }
+    
+    /**
+     * Create a styled button with specified color
+     */
+    public static JButton createStyledButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(UIConstants.NORMAL_FONT);
+        button.setPreferredSize(new Dimension(100, UIConstants.BUTTON_HEIGHT));
+        button.setFocusPainted(false);
+        button.setBorder(createRoundedBorder(backgroundColor, 1));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Hover effect - darken the color slightly
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                Color darker = backgroundColor.darker();
+                button.setBackground(darker);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor);
+            }
+        });
+        
+        return button;
     }
 }

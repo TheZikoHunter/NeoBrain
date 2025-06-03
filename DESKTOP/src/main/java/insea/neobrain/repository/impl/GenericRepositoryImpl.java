@@ -34,7 +34,9 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
     @Override
     public T save(T entity) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
@@ -42,7 +44,11 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
             return entity;
         } catch (Exception e) {
             if (transaction != null) {
-                transaction.rollback();
+                try {
+                    transaction.rollback();
+                } catch (Exception rollbackEx) {
+                    logger.error("Error during transaction rollback", rollbackEx);
+                }
             }
             // Enhanced debug logging for root cause
             logger.error("Error saving entity: {}\nEntity class: {}\nEntity toString: {}", entity, entity != null ? entity.getClass().getName() : "null", entity);
@@ -63,13 +69,23 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
             }
             // --- END: Write error to error.log file ---
             throw new RuntimeException("Error saving entity: " + cause.getMessage(), e);
+        } finally {
+            if (session != null) {
+                try {
+                    session.close();
+                } catch (Exception closeEx) {
+                    logger.error("Error closing session", closeEx);
+                }
+            }
         }
     }
     
     @Override
     public T update(T entity) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             transaction = session.beginTransaction();
             T mergedEntity = session.merge(entity);
             transaction.commit();
@@ -77,17 +93,31 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
             return mergedEntity;
         } catch (Exception e) {
             if (transaction != null) {
-                transaction.rollback();
+                try {
+                    transaction.rollback();
+                } catch (Exception rollbackEx) {
+                    logger.error("Error during transaction rollback", rollbackEx);
+                }
             }
             logger.error("Error updating entity: {}", entity, e);
             throw new RuntimeException("Error updating entity", e);
+        } finally {
+            if (session != null) {
+                try {
+                    session.close();
+                } catch (Exception closeEx) {
+                    logger.error("Error closing session", closeEx);
+                }
+            }
         }
     }
     
     @Override
     public T saveOrUpdate(T entity) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             transaction = session.beginTransaction();
             session.merge(entity);
             transaction.commit();
@@ -95,10 +125,22 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
             return entity;
         } catch (Exception e) {
             if (transaction != null) {
-                transaction.rollback();
+                try {
+                    transaction.rollback();
+                } catch (Exception rollbackEx) {
+                    logger.error("Error during transaction rollback", rollbackEx);
+                }
             }
             logger.error("Error saving or updating entity: {}", entity, e);
             throw new RuntimeException("Error saving or updating entity", e);
+        } finally {
+            if (session != null) {
+                try {
+                    session.close();
+                } catch (Exception closeEx) {
+                    logger.error("Error closing session", closeEx);
+                }
+            }
         }
     }
     
@@ -189,6 +231,24 @@ public abstract class GenericRepositoryImpl<T, ID> implements GenericRepository<
         } catch (Exception e) {
             logger.error("Error counting entities of type: {}", entityClass.getSimpleName(), e);
             throw new RuntimeException("Error counting entities", e);
+        }
+    }
+    
+    @Override
+    public void deleteAll() {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            String hql = "DELETE FROM " + entityClass.getSimpleName();
+            int deletedCount = session.createMutationQuery(hql).executeUpdate();
+            transaction.commit();
+            logger.debug("Deleted {} entities of type {}", deletedCount, entityClass.getSimpleName());
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            logger.error("Error deleting all entities of type: {}", entityClass.getSimpleName(), e);
+            throw new RuntimeException("Error deleting all entities", e);
         }
     }
     

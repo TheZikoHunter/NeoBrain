@@ -47,6 +47,17 @@ public class Client extends Personne {
     @Column(name = "credit_utilise")
     @DecimalMin(value = "0.0", message = "Le crédit utilisé ne peut pas être négatif")
     private Double creditUtilise = 0.0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type_client")
+    private TypeClient typeClient;
+
+    public TypeClient getTypeClient() {
+        return typeClient;
+    }
+    public void setTypeClient(TypeClient typeClient) {
+        this.typeClient = typeClient;
+    }
     
     // One-to-many relationship with CommandeVente
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

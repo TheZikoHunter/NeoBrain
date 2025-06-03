@@ -70,6 +70,11 @@ public interface GenericRepository<T, ID> {
     long count();
     
     /**
+     * Delete all entities
+     */
+    void deleteAll();
+    
+    /**
      * Find entities with pagination
      * @param offset the offset for pagination
      * @param limit the limit for pagination
