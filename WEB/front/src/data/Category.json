@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Electronics",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 120
+  },
+  {
+    "id": 2,
+    "name": "Fashion",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 350
+  },
+  {
+    "id": 3,
+    "name": "Home & Kitchen",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 210
+  },
+  {
+    "id": 4,
+    "name": "Beauty",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 180
+  },
+  {
+    "id": 5,
+    "name": "Books",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 420
+  },
+  {
+    "id": 6,
+    "name": "Sports",
+    "image": "https://picsum.photos/seed/picsum/300/200",
+    "itemCount": 150
+  }
+]
